@@ -1,0 +1,101 @@
+
+{
+  "cards": [
+    {
+      "cardTypeId": 1,
+      "cardName": "Rabbit",
+      "cardMoveOptions": [[-1,1], [1,-1], [0,2]],
+      "playerOneFirst": true
+    },
+    {
+      "cardTypeId": 2,
+      "cardName": "Cobra",
+      "cardMoveOptions": [[-1,1], [0,-1], [1,1]],
+      "playerOneFirst": false
+    },
+    {
+      "cardTypeId": 3,
+      "cardName": "Ox",
+      "cardMoveOptions": [[-1,0], [1,0], [0,1]],
+      "playerOneFirst": true
+    },
+    {
+      "cardTypeId": 4,
+      "cardName": "Rooster",
+      "cardMoveOptions": [[0,-1], [0,1], [-1,1], [1,-1]],
+      "playerOneFirst": false
+    },
+    {
+      "cardTypeId": 5,
+      "cardName": "Eel",
+      "cardMoveOptions": [[-1,-1], [1,-1], [0,1]],
+      "playerOneFirst": true
+    },
+    {
+      "cardTypeId": 6,
+      "cardName": "Horse",
+      "cardMoveOptions": [[0,-1], [1,0], [-1,0]],
+      "playerOneFirst": false
+    },
+    {
+      "cardTypeId": 7,
+      "cardName": "Frog",
+      "cardMoveOptions": [[-1,-1], [0,-2], [1,1]],
+      "playerOneFirst": false
+    },
+    {
+      "cardTypeId": 8,
+      "cardName": "Goose",
+      "cardMoveOptions": [[0,1], [0,-1], [-1,-1], [1,1]],
+      "playerOneFirst": true
+    },
+    {
+      "cardTypeId": 9,
+      "cardName": "Crab",
+      "cardMoveOptions": [[0,-2], [0,2], [-1,0]],
+      "playerOneFirst": true
+    },
+    {
+      "cardTypeId": 10,
+      "cardName": "Crane",
+      "cardMoveOptions": [[1,-1], [1,1], [-1,0]],
+      "playerOneFirst": true
+    },
+    {
+      "cardTypeId": 11,
+      "cardName": "Dragon",
+      "cardMoveOptions": [[1,-1], [1,1], [-1,-2], [-1,2]],
+      "playerOneFirst": false
+    },
+    {
+      "cardTypeId": 12,
+      "cardName": "Elephant",
+      "cardMoveOptions": [[0,-1], [0,1], [-1,-1], [-1,1]],
+      "playerOneFirst": false
+    },
+    {
+      "cardTypeId": 13,
+      "cardName": "Mantis",
+      "cardMoveOptions": [[-1,-1], [-1,1], [1,0]],
+      "playerOneFirst": false
+    },
+    {
+      "cardTypeId": 14,
+      "cardName": "Monkey",
+      "cardMoveOptions": [[-1,1], [1,-1], [1,1], [-1,-1]],
+      "playerOneFirst": true
+    },
+    {
+      "cardTypeId": 15,
+      "cardName": "Tiger",
+      "cardMoveOptions": [[-2,0], [1,0]],
+      "playerOneFirst": true
+    },
+    {
+      "cardTypeId": 16,
+      "cardName": "Boar",
+      "cardMoveOptions": [[0,1], [0,-1], [-1,0]],
+      "playerOneFirst": false
+    }
+  ]
+}
