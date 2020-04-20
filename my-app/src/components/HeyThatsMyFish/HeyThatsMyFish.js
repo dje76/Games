@@ -13,7 +13,10 @@ class HeyThatsMyFish extends React.Component {
       intervalId: 0,
       playerOneTurn: true,
       gameOver: false,
-      lastPlayercouldMove: true,
+      onlyCurrentPlayerCanMove: true,
+      playerFishTotal: [0,0],
+      setup: true,
+      numberOfPenguins: 0,
       dimensions: [8,8],
     };
 
@@ -21,16 +24,18 @@ class HeyThatsMyFish extends React.Component {
     this.endTurn = this.endTurn.bind(this);
     this.onTick= this.onTick.bind(this);
     this.startOver = this.startOver.bind(this);
-    this.clearMoveOptions = this.clearMoveOptions.bind(this);
+    this.clearBoard = this.clearBoard.bind(this);
     this.setMoveOptions = this.setMoveOptions.bind(this);
     this.flipPieces = this.flipPieces.bind(this);
     this.canFlipPiece = this.canFlipPiece.bind(this);
     this.checkIfGameOver = this.checkIfGameOver.bind(this);
 
-    let grid = Array(this.state.dimensions[1]).fill().map(() => Array(this.state.dimensions[0]).fill().map(() => { return { isRedPiece: false, isBluePiece: false, isMoveOption: false, numberOfFish: 0, removed: false }; }));
+    let grid = Array(this.state.dimensions[1]).fill().map(() => Array(this.state.dimensions[0]).fill().map(() => { return { isRedPiece: false, isBluePiece: false, isMoveOption: false, numberOfFish: 0, removed: false, isSelected: false }; }));
 
     this.state.grid = this.setGridValues(grid);
     console.log(this.state.grid);
+
+    document.body.style.backgroundColor = "#8bd5df";
   }
 
   setGridValues(grid){
@@ -59,10 +64,10 @@ class HeyThatsMyFish extends React.Component {
   }
 
   startOver(){
-    let grid = Array(this.state.dimensions[1]).fill().map(() => Array(this.state.dimensions[0]).fill().map(() => { return { isRedPiece: false, isBluePiece: false, isMoveOption: false, numberOfFish: 0 }; }));
+    let grid = Array(this.state.dimensions[1]).fill().map(() => Array(this.state.dimensions[0]).fill().map(() => { return { isRedPiece: false, isBluePiece: false, isMoveOption: false, numberOfFish: 0, removed: false, isSelected: false }; }));
     grid = this.setGridValues(grid);
     clearInterval(this.state.intervalId);
-    this.setState({ grid: grid, playerOneTurn: true, pieceSelected: "", gameOver: false, secondsInGame: 0, timerStarted: false });
+    this.setState({ grid: grid, playerOneTurn: true, pieceSelected: "", setup: true, gameOver: false, secondsInGame: 0, timerStarted: false });
   }
 
   endTurn(){
@@ -84,25 +89,30 @@ class HeyThatsMyFish extends React.Component {
     location[1] = parseInt(location[1]);
     let grid = this.state.grid;
 
-    if(!grid[location[0]][location[1]].isMoveOption)
-      return;
+    if(this.state.setup && !(grid[location[0]][location[1]].isBluePiece || grid[location[0]][location[1]].isRedPiece)){
+      if(this.state.playerOneTurn)
+        grid[location[0]][location[1]].isBluePiece = true;
+      else
+        grid[location[0]][location[1]].isRedPiece = true;
 
-    if(this.state.playerOneTurn)
-      grid[location[0]][location[1]].isWhitePiece = true;
-    else
-      grid[location[0]][location[1]].isBlackPiece = true;
-
-    grid = this.flipPieces(grid, location, true, this.state.playerOneTurn);
-    grid = this.clearMoveOptions(grid);
-    grid = this.setMoveOptions(grid, !this.state.playerOneTurn);
-    this.checkIfGameOver(grid);
-    this.setState({ grid: grid, playerOneTurn: !this.state.playerOneTurn, lastPlayercouldMove: true });
+      let setup = true;
+      if(this.state.numberOfPenguins === 7)
+        setup = false;
+      this.setState({ grid: grid, playerOneTurn: !this.state.playerOneTurn, numberOfPenguins: this.state.numberOfPenguins + 1, setup: setup });
+    }
+    else if((grid[location[0]][location[1]].isBluePiece && this.state.playerOneTurn) || (grid[location[0]][location[1]].isRedPiece && !this.state.playerOneTurn)){
+      grid = this.clearBoard(grid);
+      grid[location[0]][location[1]].isSelected = true;
+    }
   }
 
-  clearMoveOptions(grid){
+  clearBoard(grid){
     for(var i = 0; i < grid.length; i++){
       for(var j = 0; j < grid.length; j++){
-        grid[i][j].isMoveOption = false;
+        if(grid[i][j].isMoveOption)
+          grid[i][j].isMoveOption = false;
+        if(grid[i][j].isSelected)
+          grid[i][j].isSelected = false;
       }
     }
     return grid;
@@ -119,7 +129,7 @@ class HeyThatsMyFish extends React.Component {
   }
 
   flipPieces(grid, location, filpPiece, playerOneTurn){
-    let possibleFlipDirection = [false,false,false,false,false,false,false,false];
+    let possibleFlipDirection = [false,false,false,false,false,false];
     if(location[0]-1 >= 0 && location[1]-1 >= 0 && ((grid[location[0]-1][location[1]-1].isBlackPiece && playerOneTurn) || (grid[location[0]-1][location[1]-1].isWhitePiece && !playerOneTurn)))
       possibleFlipDirection[0] = [-1,-1];
     if(location[0]-1 >= 0 && ((grid[location[0]-1][location[1]].isBlackPiece && playerOneTurn) || (grid[location[0]-1][location[1]].isWhitePiece && !playerOneTurn)))
@@ -132,10 +142,6 @@ class HeyThatsMyFish extends React.Component {
       possibleFlipDirection[5] = [0,1];
     if(location[0]+1 < this.state.dimensions[0] && location[1]-1 >= 0 && ((grid[location[0]+1][location[1]-1].isBlackPiece && playerOneTurn) || (grid[location[0]+1][location[1]-1].isWhitePiece && !playerOneTurn)))
       possibleFlipDirection[6] = [1,-1];
-    if(location[0]+1 < this.state.dimensions[0] && ((grid[location[0]+1][location[1]].isBlackPiece && playerOneTurn) || (grid[location[0]+1][location[1]].isWhitePiece && !playerOneTurn)))
-      possibleFlipDirection[7] = [1,0];
-    if(location[0]+1 < this.state.dimensions[0] && location[1]+1 < this.state.dimensions[1] && ((grid[location[0]+1][location[1]+1].isBlackPiece && playerOneTurn) || (grid[location[0]+1][location[1]+1].isWhitePiece && !playerOneTurn)))
-      possibleFlipDirection[8] = [1,1];
 
     for(let i = 0; i < possibleFlipDirection.length; i++){
       if(!possibleFlipDirection[i])
@@ -209,11 +215,14 @@ class HeyThatsMyFish extends React.Component {
       return x.map((y, index2) => {
         return (
           <Tile
-            isWhitePiece={y.isWhitePiece}
-            isBlackPiece={y.isBlackPiece}
+            isBluePiece={y.isBluePiece}
+            isRedPiece={y.isRedPiece}
             isMoveOption={y.isMoveOption}
+            isSelected={y.isSelected}
             numberOfFish={y.numberOfFish}
+            removed={y.removed}
             playerOneTurn={this.state.playerOneTurn}
+            setup={this.state.setup}
             key={index + " " + index2}
             identifier={index + " " + index2}
             handleSquareClick={this.handleSquareClick}
@@ -231,7 +240,7 @@ class HeyThatsMyFish extends React.Component {
               startOver={this.startOver}
               secondsInGame={this.state.secondsInGame}
               gameOver={this.state.gameOver}
-              playerPieceTotal={this.state.playerPieceTotal}
+              playerFishTotal={this.state.playerFishTotal}
               endTurn={this.endTurn}
             />
           </div>

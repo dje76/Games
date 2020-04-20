@@ -41,6 +41,7 @@ class Onitama extends React.Component {
     this.state.grid = this.setGridValues(grid);
     this.state.cards = this.propulateCards();
     this.state.playerOneTurn = this.state.cards[2].playerOneFirst;
+    document.body.style.backgroundColor = "beige";
   }
 
   setGridValues(grid){

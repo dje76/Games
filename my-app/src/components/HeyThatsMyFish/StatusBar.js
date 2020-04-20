@@ -7,12 +7,12 @@ class StatusBar extends React.Component {
   render() {
     let gameOver = null;
     if(this.props.gameOver){
-      if(this.props.playerPieceTotal[0] > this.props.playerPieceTotal[1])
-        gameOver = <div><div>White: {this.props.playerPieceTotal[0]} Black: {this.props.playerPieceTotal[1]}</div>White Player Won!</div>;
-      else if(this.props.playerPieceTotal[0] < this.props.playerPieceTotal[1])
-        gameOver = <div><div>White: {this.props.playerPieceTotal[0]} Black: {this.props.playerPieceTotal[1]}</div>Black Player Won!</div>;
+      if(this.props.playerFishTotal[0] > this.props.playerFishTotal[1])
+        gameOver = <div><div>Blue: {this.props.playerFishTotal[0]} Red: {this.props.playerFishTotal[1]}</div>Blue Player Won!</div>;
+      else if(this.props.playerFishTotal[0] < this.props.playerFishTotal[1])
+        gameOver = <div><div>Blue: {this.props.playerFishTotal[0]} Red: {this.props.playerFishTotal[1]}</div>Red Player Won!</div>;
       else
-        gameOver = <div><div>White: {this.props.playerPieceTotal[0]} Black: {this.props.playerPieceTotal[1]}</div>It's a Tie!</div>;
+        gameOver = <div><div>Blue: {this.props.playerFishTotal[0]} Red: {this.props.playerFishTotal[1]}</div>It's a Tie!</div>;
     }
     let style = Object.assign({},
       this.props.playerOneTurn && styles.Invert

@@ -35,6 +35,7 @@ class Othello extends React.Component {
 
     grid = this.setGridValues(grid);
     this.state.grid = this.setMoveOptions(grid, this.state.playerOneTurn);
+    document.body.style.backgroundColor = "beige";
   }
 
   setGridValues(grid){

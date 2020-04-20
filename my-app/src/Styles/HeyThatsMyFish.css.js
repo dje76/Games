@@ -2,9 +2,7 @@ export default {
   board:{
     lineHeight: "0px",
     marginTop: "10px",
-    width: "61vw",
-    height: "53vw",
-    background: "#8bd5df"
+    width: "61vw"
   },
   Tile:{
     display: "inline-flex",
@@ -39,7 +37,6 @@ export default {
     left: "0",
     width: "100%",
     height: "100%",
-    background: "White",
     transform: "skewY(-30deg) rotate(60deg)",
     textAlign: "center",
     paddingTop: "30px",
@@ -53,5 +50,11 @@ export default {
   },
   visibleHex: {
     visibility: "visible"
+  },
+  selected: {
+    backgroundColor: "yellow"
+  },
+  notSelected:{
+    backgroundColor: "White"
   }
 }

@@ -17,6 +17,7 @@ class Snake extends React.Component {
     this.restartFinished = this.restartFinished.bind(this);
     this.canChangeDirection = this.canChangeDirection.bind(this);
     this.foodEaten = this.foodEaten.bind(this);
+    document.body.style.backgroundColor = "beige";
   }
 
   newGame(){

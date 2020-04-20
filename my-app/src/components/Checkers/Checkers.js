@@ -36,6 +36,7 @@ class Checkers extends React.Component {
     this.state.boardDimensions = [(this.state.dimensions[0] * this.state.cellSize) + 4, (this.state.dimensions[1] * this.state.cellSize) + 4];
 
     this.state.grid = this.setGridValues(grid);
+    document.body.style.backgroundColor = "beige";
   }
 
   setGridValues(grid){
