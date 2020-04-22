@@ -39,6 +39,12 @@ export default {
     height: "100%",
     transform: "skewY(-30deg) rotate(60deg)",
     textAlign: "center",
+  },
+  pinguinHex:{
+    paddingTop: "10px",
+    paddingBottom: "10px"
+  },
+  fishHex: {
     paddingTop: "30px",
     paddingBottom: "30px"
   },
@@ -56,5 +62,8 @@ export default {
   },
   notSelected:{
     backgroundColor: "White"
+  },
+  moveOption: {
+    backgroundColor: "#e2e2e2"
   }
 }

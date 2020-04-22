@@ -12,8 +12,9 @@ class HeyThatsMyFish extends React.Component {
       secondsInGame: 0,
       intervalId: 0,
       playerOneTurn: true,
+      pieceSelected: "",
       gameOver: false,
-      onlyCurrentPlayerCanMove: true,
+      onlyCurrentPlayerCanMove: false,
       playerFishTotal: [0,0],
       setup: true,
       numberOfPenguins: 0,
@@ -26,14 +27,10 @@ class HeyThatsMyFish extends React.Component {
     this.startOver = this.startOver.bind(this);
     this.clearBoard = this.clearBoard.bind(this);
     this.setMoveOptions = this.setMoveOptions.bind(this);
-    this.flipPieces = this.flipPieces.bind(this);
-    this.canFlipPiece = this.canFlipPiece.bind(this);
-    this.checkIfGameOver = this.checkIfGameOver.bind(this);
+    this.setMoveLines = this.setMoveLines.bind(this);
 
     let grid = Array(this.state.dimensions[1]).fill().map(() => Array(this.state.dimensions[0]).fill().map(() => { return { isRedPiece: false, isBluePiece: false, isMoveOption: false, numberOfFish: 0, removed: false, isSelected: false }; }));
-
     this.state.grid = this.setGridValues(grid);
-    console.log(this.state.grid);
 
     document.body.style.backgroundColor = "#8bd5df";
   }
@@ -67,15 +64,18 @@ class HeyThatsMyFish extends React.Component {
     let grid = Array(this.state.dimensions[1]).fill().map(() => Array(this.state.dimensions[0]).fill().map(() => { return { isRedPiece: false, isBluePiece: false, isMoveOption: false, numberOfFish: 0, removed: false, isSelected: false }; }));
     grid = this.setGridValues(grid);
     clearInterval(this.state.intervalId);
-    this.setState({ grid: grid, playerOneTurn: true, pieceSelected: "", setup: true, gameOver: false, secondsInGame: 0, timerStarted: false });
+    this.setState({ grid: grid, playerOneTurn: true, pieceSelected: "", setup: true, gameOver: false, secondsInGame: 0, timerStarted: false, onlyCurrentPlayerCanMove: false });
   }
 
   endTurn(){
     let grid = this.state.grid;
-    grid = this.clearMoveOptions(grid);
-    grid = this.setMoveOptions(grid, !this.state.playerOneTurn);
-    this.checkIfGameOver(grid);
-    this.setState({ grid: grid, playerOneTurn: !this.state.playerOneTurn, lastPlayercouldMove: false });
+    grid = this.clearBoard(grid);
+    let gameOver = false;
+    if(this.state.onlyCurrentPlayerCanMove){
+      clearInterval(this.state.intervalId);
+      gameOver = true;
+    }
+    this.setState({ grid: grid, playerOneTurn: !this.state.playerOneTurn, onlyCurrentPlayerCanMove: true, gameOver: gameOver });
   }
 
   handleSquareClick(key){
@@ -103,6 +103,30 @@ class HeyThatsMyFish extends React.Component {
     else if((grid[location[0]][location[1]].isBluePiece && this.state.playerOneTurn) || (grid[location[0]][location[1]].isRedPiece && !this.state.playerOneTurn)){
       grid = this.clearBoard(grid);
       grid[location[0]][location[1]].isSelected = true;
+      grid = this.setMoveOptions(grid, location);
+      this.setState({ grid: grid, pieceSelected: key });
+    }
+    else if(grid[location[0]][location[1]].isMoveOption){
+      let playerFishTotal = this.state.playerFishTotal;
+      let selectedLocation = this.state.pieceSelected.split(" ");
+      selectedLocation[0] = parseInt(selectedLocation[0]);
+      selectedLocation[1] = parseInt(selectedLocation[1]);
+      grid[selectedLocation[0]][selectedLocation[1]].isSelected = false;
+      grid[selectedLocation[0]][selectedLocation[1]].removed = true;
+      if(this.state.playerOneTurn){
+        playerFishTotal[0] += grid[selectedLocation[0]][selectedLocation[1]].numberOfFish;
+        grid[location[0]][location[1]].isBluePiece = true;
+      }
+      else{
+        playerFishTotal[1] += grid[selectedLocation[0]][selectedLocation[1]].numberOfFish;
+        grid[location[0]][location[1]].isRedPiece = true;
+      }
+      grid = this.clearBoard(grid);
+
+      let playerOneTurn = this.state.playerOneTurn;
+      if(!this.state.onlyCurrentPlayerCanMove)
+        playerOneTurn = !playerOneTurn;
+      this.setState({ grid: grid, playerOneTurn: playerOneTurn, playerFishTotal: playerFishTotal });
     }
   }
 
@@ -118,91 +142,45 @@ class HeyThatsMyFish extends React.Component {
     return grid;
   }
 
-  setMoveOptions(grid, playerOneTurn){
-    for(var i = 0; i < this.state.dimensions[0]; i++){
-      for(var j = 0; j < this.state.dimensions[1]; j++){
-        if(!grid[i][j].isWhitePiece && !grid[i][j].isBlackPiece)
-          grid = this.flipPieces(grid, [i,j], false, playerOneTurn)
-      }
-    }
+  setMoveOptions(grid, location){
+    grid = this.setMoveLines(grid, location, [-1,-1]);
+    grid = this.setMoveLines(grid, location, [-1,0]);
+    grid = this.setMoveLines(grid, location, [0,-1]);
+    grid = this.setMoveLines(grid, location, [0,1]);
+    grid = this.setMoveLines(grid, location, [+1,-1]);
+    grid = this.setMoveLines(grid, location, [+1,0]);
+
     return grid;
   }
 
-  flipPieces(grid, location, filpPiece, playerOneTurn){
-    let possibleFlipDirection = [false,false,false,false,false,false];
-    if(location[0]-1 >= 0 && location[1]-1 >= 0 && ((grid[location[0]-1][location[1]-1].isBlackPiece && playerOneTurn) || (grid[location[0]-1][location[1]-1].isWhitePiece && !playerOneTurn)))
-      possibleFlipDirection[0] = [-1,-1];
-    if(location[0]-1 >= 0 && ((grid[location[0]-1][location[1]].isBlackPiece && playerOneTurn) || (grid[location[0]-1][location[1]].isWhitePiece && !playerOneTurn)))
-      possibleFlipDirection[2] = [-1,0];
-    if(location[0]-1 >= 0 && location[1]+1 < this.state.dimensions[1] && ((grid[location[0]-1][location[1]+1].isBlackPiece && playerOneTurn) || (grid[location[0]-1][location[1]+1].isWhitePiece && !playerOneTurn)))
-      possibleFlipDirection[3] = [-1,1];
-    if(location[1]-1 >= 0 && ((grid[location[0]][location[1]-1].isBlackPiece && playerOneTurn) || (grid[location[0]][location[1]-1].isWhitePiece && !playerOneTurn)))
-      possibleFlipDirection[4] = [0,-1];
-    if(location[1]+1 < this.state.dimensions[1] && ((grid[location[0]][location[1]+1].isBlackPiece && playerOneTurn) || (grid[location[0]][location[1]+1].isWhitePiece && !playerOneTurn)))
-      possibleFlipDirection[5] = [0,1];
-    if(location[0]+1 < this.state.dimensions[0] && location[1]-1 >= 0 && ((grid[location[0]+1][location[1]-1].isBlackPiece && playerOneTurn) || (grid[location[0]+1][location[1]-1].isWhitePiece && !playerOneTurn)))
-      possibleFlipDirection[6] = [1,-1];
-
-    for(let i = 0; i < possibleFlipDirection.length; i++){
-      if(!possibleFlipDirection[i])
-        continue;
-
-      let result = this.canFlipPiece(grid, [location[0]+possibleFlipDirection[i][0],location[1]+possibleFlipDirection[i][1]], possibleFlipDirection[i], filpPiece, playerOneTurn);
-      grid = result.grid;
-      if(!filpPiece && result.canFlip)
-        grid[location[0]][location[1]].isMoveOption = true;
+  setMoveLines(grid, location, direction){
+    if(location[0] % 2 === 1 || direction[0] === 0){
+      if(location[0] + direction[0] >= 0 &&
+        location[0] + direction[0] < grid.length &&
+        location[1] + direction[1] >= 0 &&
+        location[1] + direction[1] < grid.length &&
+        !grid[location[0] + direction[0]][location[1] + direction[1]].isBluePiece &&
+        !grid[location[0] + direction[0]][location[1] + direction[1]].isRedPiece &&
+        !grid[location[0] + direction[0]][location[1] + direction[1]].removed
+      ){
+        grid[location[0]+direction[0]][location[1]+direction[1]].isMoveOption = true;
+        grid = this.setMoveLines(grid, [location[0] + direction[0],location[1] + direction[1]], direction);
+      }
+    }
+    else{
+      if(location[0] + direction[0] >= 0 &&
+        location[0] + direction[0] < grid.length &&
+        location[1] + direction[1] + 1 >= 0 &&
+        location[1] + direction[1] + 1 < grid.length &&
+        !grid[location[0] + direction[0]][location[1] + direction[1] + 1].isBluePiece &&
+        !grid[location[0] + direction[0]][location[1] + direction[1] + 1].isRedPiece &&
+        !grid[location[0] + direction[0]][location[1] + direction[1] + 1].removed
+      ){
+        grid[location[0]+direction[0]][location[1]+direction[1] + 1].isMoveOption = true;
+        grid = this.setMoveLines(grid, [location[0] + direction[0],location[1] + direction[1] + 1], direction);
+      }
     }
     return grid;
-  }
-
-  canFlipPiece(grid, location, direction, filpPiece, playerOneTurn){
-    if(location[0] < 0 || location[1] < 0 || location[0] > this.state.dimensions[0] - 1 || location[1] > this.state.dimensions[1] - 1)
-      return { grid: grid, canFlip: false };
-    if((grid[location[0]][location[1]].isBlackPiece && !playerOneTurn) || (grid[location[0]][location[1]].isWhitePiece && playerOneTurn))
-      return { grid: grid, canFlip: true };
-    if((grid[location[0]][location[1]].isBlackPiece && playerOneTurn) || (grid[location[0]][location[1]].isWhitePiece && !playerOneTurn)){
-      let newLocation = [location[0]+direction[0],location[1]+direction[1]];
-      let result = this.canFlipPiece(grid, newLocation, direction, filpPiece, playerOneTurn);
-      if(result.canFlip && filpPiece){
-        grid = result.grid;
-        if(grid[location[0]][location[1]].isBlackPiece){
-          grid[location[0]][location[1]].isBlackPiece = false;
-          grid[location[0]][location[1]].isWhitePiece = true;
-        }
-        else{
-          grid[location[0]][location[1]].isBlackPiece = true;
-          grid[location[0]][location[1]].isWhitePiece = false;
-        }
-      }
-      return { grid: grid, canFlip: result.canFlip };
-    }
-    else
-      return { grid: grid, canFlip: false };
-  }
-
-  checkIfGameOver(grid){
-    let hasMoveOption = false;
-    let hasFreeSpace = false;
-    let PieceCount = [0,0];
-    for(var i = 0; i < grid.length; i++){
-      for(var j = 0; j < grid.length; j++){
-        if(grid[i][j].isWhitePiece)
-          PieceCount[0]++;
-        else if(grid[i][j].isBlackPiece)
-          PieceCount[1]++;
-        else if(grid[i][j].isMoveOption)
-          hasMoveOption = true;
-        else
-          hasFreeSpace = true;
-        if(hasMoveOption)
-          return;
-      }
-    }
-
-    if((!this.state.lastPlayercouldMove || !hasFreeSpace) && !hasMoveOption){
-      clearInterval(this.state.intervalId);
-      this.setState({ gameOver: true, playerPieceTotal: PieceCount });
-    }
   }
 
   onTick(){
