@@ -2,7 +2,6 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const lostCities_discardPileSchema = new Schema({
-  lostCities_discardPileId: { type: Number, unique: true },
   lostCities_GameId: Number,
   tableauItemTypeId: Number,
   cardsDiscarded: Array

@@ -7,6 +7,8 @@ import Checkers from './components/Checkers/Checkers.js';
 import Onitama from './components/Onitama/Onitama.js';
 import Othello from './components/Othello/Othello.js';
 import HeyThatsMyFish from './components/HeyThatsMyFish/HeyThatsMyFish.js';
+import LostCities from './components/LostCities/LostCities.js';
+
 import {
   Switch,
   Route,
@@ -25,6 +27,7 @@ function App() {
           <Nav.Link as={Link} to="/Onitama">Onitama</Nav.Link>
           <Nav.Link as={Link} to="/Othello">Othello</Nav.Link>
           <Nav.Link as={Link} to="/HeyThatsMyFish">Hey That's My Fish!</Nav.Link>
+          <Nav.Link as={Link} to="/LostCities">Lost Cities</Nav.Link>
         </Nav>
       </Navbar>
       <Switch>
@@ -45,6 +48,9 @@ function App() {
         </Route>
         <Route path="/HeyThatsMyFish">
           <HeyThatsMyFish />
+        </Route>
+        <Route path="/LostCities">
+          <LostCities />
         </Route>
         <Route path="/">
           <Home />

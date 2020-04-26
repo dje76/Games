@@ -2,9 +2,8 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const lostCities_HandSchema = new Schema({
-  lostCities_HandId: { type: Number, unique: true },
-  playerId: { type: Number, unique: true },
-  lostCities_GameId: Number,
+  playerId: { type: String, unique: true },
+  lostCities_GameId: String,
   hand: Array
 });
 

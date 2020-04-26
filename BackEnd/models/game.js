@@ -2,10 +2,11 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const gameSchema = new Schema({
-  gameId: { type: Number, unique: true },
   gamePassword: String,
+  gameName: { type: String, unique: true },
   playerCount: Number,
-  gameTypeId: Number
+  gameTypeId: Number,
+  gameComplete: Boolean
 });
 
 module.exports = mongoose.model('game', gameSchema);
