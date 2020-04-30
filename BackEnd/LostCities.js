@@ -3,6 +3,7 @@ const game = require('./models/game');
 const player = require('./models/player');
 const lostCities_Game = require('./models/lostCities_Game');
 const lostCities_Hand = require('./models/lostCities_Hand');
+const lostCities_playArea = require('./models/lostCities_playArea');
 const url = 'mongodb://127.0.0.1:27017/Boardgames';
 
 class LostCities {
@@ -59,11 +60,36 @@ class LostCities {
     });
     const insertedLostCities_Hand = await currentLostCities_Hand.save();
 
+    let playAreas = [];
+    for(let i = 0; i < 10; i++){
+      if(i < 5){
+        let currentLostCities_Hand = new lostCities_playArea ({
+          lostCities_GameId: insertedLostCities_Game._id,
+          isDiscard: true,
+          playerId: "",
+          suit: (i % 5) + 1,
+          playedCards: []
+        });
+        playAreas.push(await currentLostCities_Hand.save());
+      }
+      else{
+        let currentLostCities_Hand = new lostCities_playArea ({
+          lostCities_GameId: insertedLostCities_Game._id,
+          isDiscard: false,
+          playerId: insertedPlayer._id,
+          suit: (i % 5) + 1,
+          playedCards: []
+        });
+        playAreas.push(await currentLostCities_Hand.save());
+      }
+    }
+
     res.send({
       currentGame: insertedGame,
       currentPlayer: insertedPlayer,
       currentLostCities_Game: insertedLostCities_Game,
-      currentLostCities_Hand: insertedLostCities_Hand
+      currentLostCities_Hand: insertedLostCities_Hand,
+      currentLostCities_playAreas: playAreas
     });
   }
 
@@ -103,10 +129,24 @@ class LostCities {
     const insertedLostCities_Hand = await currentLostCities_Hand.save();
     const newLostCities_Hand = await currentLostCities_Game.save();
 
+    let playAreas = [];
+    for(let i = 0; i < 5; i++){
+      let currentLostCities_Hand = new lostCities_playArea ({
+        lostCities_GameId: currentLostCities_Game._id,
+        isDiscard: false,
+        playerId: insertedPlayer._id,
+        suit: i + 1,
+        playedCards: []
+      });
+      playAreas.push(await currentLostCities_Hand.save());
+    }
+    const gamePlayAreas = await lostCities_playArea.find({ lostCities_GameId: currentLostCities_Game._id });
+
     res.send({
       currentPlayer: insertedPlayer,
       currentLostCities_Game: newLostCities_Hand,
-      currentLostCities_Hand: insertedLostCities_Hand
+      currentLostCities_Hand: insertedLostCities_Hand,
+      currentLostCities_playAreas: gamePlayAreas
     });
   }
 
@@ -119,53 +159,66 @@ class LostCities {
       _id: req.body.selectedPlayerId,
       playerPassword: req.body.playerPassword
     });
-    let currentLostCities_Game = await lostCities_Game.findOne({ gameId: req.body.selectedId });
+    const currentLostCities_Game = await lostCities_Game.findOne({ gameId: req.body.selectedId });
     const currentLostCities_Hand = await lostCities_Hand.findOne({ playerId: currentplayer._id });
+    const gamePlayAreas = await lostCities_playArea.find({ lostCities_GameId: currentLostCities_Game._id });
 
-    if(currentLostCities_Hand === undefined || currentLostCities_Hand === null){
-      let hand = [];
-      for(let i = 0; i < 8; i++){
-        hand.push(currentLostCities_Game.deck.pop());
-      }
-      const currentLostCities_Hand = new lostCities_Hand ({
-        playerId: currentplayer._id,
-        hand: hand,
-        lostCities_GameId: currentLostCities_Game._id
-      });
-      console.log(currentLostCities_Game.deck.length);
-      const insertedLostCities_Hand = await currentLostCities_Hand.save();
-      const newLostCities_Game = await currentLostCities_Game.save();
+    res.send({
+      currentPlayer: currentplayer,
+      currentLostCities_Game: currentLostCities_Game,
+      currentLostCities_Hand: currentLostCities_Hand,
+      currentLostCities_playAreas: gamePlayAreas
+    });
+  }
 
-      res.send({
-        currentPlayer: currentplayer,
-        currentLostCities_Game: newLostCities_Game,
-        currentLostCities_Hand: insertedLostCities_Hand
-      });
+
+  async endTurnSave(req, res){
+    if(req.body.deck.length === 0){
+      const currentGame = await game.findOne ({ _id: req.body.game._id });
+      currentGame.gameComplete = true;
+      await currentGame.save();
     }
+
+    const currentPlayers = await player.find({ gameId: req.body.game._id });
+    let changePlayerId = "";
+    if(currentPlayers[0]._id === req.body.player._id)
+      changePlayerId = currentPlayers[1]._id;
     else
-      res.send({
-        currentPlayer: currentplayer,
-        currentLostCities_Game: currentLostCities_Game,
-        currentLostCities_Hand: currentLostCities_Hand
-      });
+      changePlayerId = currentPlayers[0]._id;
+    const currentLostCities_Game = await lostCities_Game.findOne({ gameId: req.body.game._id });
+    currentLostCities_Game.deck = req.body.deck;
+    currentLostCities_Game.playerTurn = changePlayerId;
+    await currentLostCities_Game.save();
+
+    const currentLostCities_Hand = await lostCities_Hand.findOne({ _id: req.body.hand._id });
+    currentLostCities_Hand.hand = req.body.hand.hand;
+    await currentLostCities_Hand.save();
+
+    for(let i = 0; i < req.body.playAreas; i++){
+      const playArea = await lostCities_playArea.findOne({ _id: req.body.playAreas[i]._id });
+      playArea.playedCards = req.body.playAreas[i].playedCards;
+      await playArea.save();
+    }
+
+    res.send({ complete: true });
   }
 
   buildDeck(){
     let deck = [];
     for(let i = 1; i < 66; i++){
-      let cardValue = i % 13;
-      if(cardValue === 0)
-        cardValue = 13;
+      let cardValue = i % 12;
+      if(cardValue > 10 || cardValue === 1)
+        cardValue = 0;
       if(i < 14)
-        deck.push({ value: cardValue, suit: "Yellow" });
+        deck.push({ value: cardValue, suit: 1 });
       else if(i < 27)
-        deck.push({ value: cardValue, suit: "White" });
+        deck.push({ value: cardValue, suit: 2 });
       else if(i < 40)
-        deck.push({ value: cardValue, suit: "Blue" });
+        deck.push({ value: cardValue, suit: 3 });
       else if(i < 53)
-        deck.push({ value: cardValue, suit: "Green" });
+        deck.push({ value: cardValue, suit: 4 });
       else
-        deck.push({ value: cardValue, suit: "Red" });
+        deck.push({ value: cardValue, suit: 5 });
     }
     var currentIndex = deck.length, temporaryValue, randomIndex;
 

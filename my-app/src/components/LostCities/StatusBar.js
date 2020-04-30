@@ -7,15 +7,18 @@ class StatusBar extends React.Component {
   render() {
     let gameOver = null;
     if(this.props.gameOver){
-      if(this.props.playerFishTotal[0] > this.props.playerFishTotal[1])
-        gameOver = <div><div>Blue: {this.props.playerFishTotal[0]} Red: {this.props.playerFishTotal[1]}</div>Blue Player Won!</div>;
-      else if(this.props.playerFishTotal[0] < this.props.playerFishTotal[1])
-        gameOver = <div><div>Blue: {this.props.playerFishTotal[0]} Red: {this.props.playerFishTotal[1]}</div>Red Player Won!</div>;
+      let winner = "";
+      if(this.props.playerScores[0] > this.props.playerScores[1])
+        winner += "You Won!";
+      else if(this.props.playerScores[0] < this.props.playerScores[1])
+        winner += "Your Opponent Won!";
       else
-        gameOver = <div><div>Blue: {this.props.playerFishTotal[0]} Red: {this.props.playerFishTotal[1]}</div>It's a Tie!</div>;
+        gameOver += "It's a Tie!";
+      gameOver = <div><div>You: {this.props.playerScores[0]} Opponent: {this.props.playerScores[1]}</div>{winner}</div>;
     }
     let style = Object.assign({},
-      this.props.playersTurn && styles.Invert
+      styles.arrow,
+      this.props.isPlayersTurn && styles.Invert
     );
 
     let gameName = this.props.game === undefined || this.props.game.gameName === null ? "" : this.props.game.gameName;
@@ -27,7 +30,7 @@ class StatusBar extends React.Component {
         <div>Game Name: {gameName}</div>
         <div>Player Name: {playerName}</div>
         <div><a href={rules} target="_blank" rel="noopener noreferrer">Rules</a></div>
-        <div style={styles.turnArrow}><img style={style} src={turnArrow} height="400" width="75" alt="turnArrow"/></div>
+        <div style={styles.turnArrow}><img style={style} src={turnArrow} alt="turnArrow"/></div>
         {gameOver}
       </div>
     );

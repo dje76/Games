@@ -51,3 +51,7 @@ app.post('/players',async (req, res) =>{
 app.post('/playerLogin', async (req, res) =>{
   lostCitiesHandler.playerLogin(req, res);
 });
+
+app.post('/endTurnSave', async (req, res) =>{
+  lostCitiesHandler.endTurnSave(req, res);
+});

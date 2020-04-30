@@ -2,13 +2,7 @@ export default {
   board:{
     lineHeight: "0px",
     marginTop: "10px",
-    width: "61vw"
-  },
-  Tile:{
-    display: "inline-flex",
-    borderStyle: "solid",
-    borderWidth: "1px",
-    borderColor: "black",
+    width: "100%"
   },
   Pointer:{
     cursor: "pointer"
@@ -18,44 +12,6 @@ export default {
   },
   turnArrow: {
     marginTop: "75px"
-  },
-  gridLi: {
-    listStyleType: "none",
-    position: "relative",
-    float: "left",
-    width: "11.85714285714286%",
-    padding: "0 0 13.16760145166612% 0",
-    transform: "rotate(-60deg) skewY(30deg)",
-    borderWidth: "2px",
-    borderStyle: "solid",
-    overflow: "hidden",
-    visibility: "hidden"
-  },
-  hexagon: {
-    position: "absolute",
-    top: "0",
-    left: "0",
-    width: "100%",
-    height: "100%",
-    transform: "skewY(-30deg) rotate(60deg)",
-    textAlign: "center",
-  },
-  pinguinHex:{
-    paddingTop: "10px",
-    paddingBottom: "10px"
-  },
-  fishHex: {
-    paddingTop: "30px",
-    paddingBottom: "30px"
-  },
-  hexToTheRight: {
-    transform: "translateX(50%) rotate(-60deg) skewY(30deg)"
-  },
-  notTopHexRow: {
-    marginTop: "-2.1vw"
-  },
-  visibleHex: {
-    visibility: "visible"
   },
   selected: {
     backgroundColor: "yellow"
@@ -71,5 +27,72 @@ export default {
   },
   gameOptionButton: {
     float: "right"
+  },
+  playArea:{
+    width: "19%",
+    marginRight: "1%",
+    borderStyle: "solid",
+    borderWidth: "3px",
+    borderColor: "black",
+    borderRadius: "5px",
+    display: "inline-block",
+    marginBottom: "10px",
+    verticalAlign: "top",
+    fontSize: "35px"
+  },
+  playerArea: {
+    height: "calc(40vh - 80px)",
+    lineHeight: "37px",
+    paddingLeft: "20px"
+  },
+  discardArea: {
+    height: "calc(20vh - 80px)",
+    padding: "20px 0px",
+    textAlign: "center"
+  },
+  hand:{
+    height: "calc(25vh - 80px)",
+    borderStyle: "solid",
+    borderWidth: "2px",
+    borderColor: "black",
+    borderRadius: "5px",
+    padding: "5px 5px"
+  },
+  card: {
+    display: "inline-block",
+    textAlign: "center",
+    width: "calc(12.5% - 4.25px)",
+    height: "100%",
+    textAlign: "center",
+    borderStyle: "solid",
+    borderWidth: "2px",
+    lineHeight: "calc(25vh - 85px)",
+    fontSize: "300%",
+    marginRight: "3px"
+  },
+  deck:{
+    width: "100%",
+    borderStyle: "solid",
+    borderWidth: "5px",
+    borderRadius: "5px",
+    marginTop: "7vh"
+  },
+  arrow: {
+    height: "50vh",
+    maxHeight: "400px"
+  },
+  borderHighlight:{
+    borderColor: "yellow",
+    cursor: "pointer"
+  },
+  normalBorder:{
+    borderColor: "black"
+  },
+  hidden: {
+    visibility: "hidden"
+  },
+  scoreBlock:{
+    marginTop: "10vh",
+    textAlign: "center"
   }
 }
