@@ -63,7 +63,6 @@ export default {
     textAlign: "center",
     width: "calc(12.5% - 4.25px)",
     height: "100%",
-    textAlign: "center",
     borderStyle: "solid",
     borderWidth: "2px",
     lineHeight: "calc(25vh - 85px)",

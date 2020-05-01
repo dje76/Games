@@ -181,7 +181,7 @@ class LostCities {
 
     const currentPlayers = await player.find({ gameId: req.body.game._id });
     let changePlayerId = "";
-    if(currentPlayers[0]._id === req.body.player._id)
+    if(currentPlayers[0]._id.toString() === req.body.player._id.toString())
       changePlayerId = currentPlayers[1]._id;
     else
       changePlayerId = currentPlayers[0]._id;
@@ -194,10 +194,10 @@ class LostCities {
     currentLostCities_Hand.hand = req.body.hand.hand;
     await currentLostCities_Hand.save();
 
-    for(let i = 0; i < req.body.playAreas; i++){
+    for(let i = 0; i < req.body.playAreas.length; i++){
       const playArea = await lostCities_playArea.findOne({ _id: req.body.playAreas[i]._id });
       playArea.playedCards = req.body.playAreas[i].playedCards;
-      await playArea.save();
+      const newPlayArea = await playArea.save();
     }
 
     res.send({ complete: true });
@@ -205,7 +205,7 @@ class LostCities {
 
   buildDeck(){
     let deck = [];
-    for(let i = 1; i < 66; i++){
+    for(let i = 1; i < 60; i++){
       let cardValue = i % 12;
       if(cardValue > 10 || cardValue === 1)
         cardValue = 0;

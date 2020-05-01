@@ -1,5 +1,4 @@
 import React from 'react';
-import Card from './Card.js';
 import styles from '../../Styles/LostCities.css.js';
 import Yellow from '../../Images/LostCities/Yellow.png';
 import Blue from '../../Images/LostCities/Blue.png';

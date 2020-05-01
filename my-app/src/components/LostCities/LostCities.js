@@ -76,7 +76,6 @@ class LostCities extends React.Component {
     console.log(requestData.data);
     let playerScores = this.calculateScores(requestData.data.currentLostCities_playAreas, requestData.data.currentPlayer);
     this.setState({
-      isPlayersTurn: true,
       hand: requestData.data.currentLostCities_Hand,
       showCreateGameModal: false,
       deck: requestData.data.currentLostCities_Game.deck,
@@ -91,19 +90,21 @@ class LostCities extends React.Component {
   calculateScores(playAreas, player){
     let playerScore = 0;
     let opponentScore = 0;
-    for(var i = 0; i < playAreas.length; i++){
+    for(let i = 0; i < playAreas.length; i++){
       if(playAreas[i].playerId === player._id && playAreas[i].playedCards.length !== 0){
         let playAreaScore = -20;
         let invesmentMultiplier = 1;
-        for(var j = 0; j < playAreas[i].playedCards.length; j++){
+        for(let j = 0; j < playAreas[i].playedCards.length; j++){
           playAreaScore += playAreas[i].playedCards[j].value;
+          if(playAreas[i].playedCards[j].value === 0)
+            invesmentMultiplier++;
         }
         playerScore += playAreaScore * invesmentMultiplier;
       }
       else if(!playAreas[i].isDiscard && playAreas[i].playedCards.length !== 0){
         let playAreaScore = -20;
         let invesmentMultiplier = 1;
-        for(var j = 0; j < playAreas[i].playedCards.length; j++){
+        for(let j = 0; j < playAreas[i].playedCards.length; j++){
           playAreaScore += playAreas[i].playedCards[j].value;
         }
         opponentScore += playAreaScore * invesmentMultiplier;
@@ -131,7 +132,7 @@ class LostCities extends React.Component {
       gameOver = true;
 
     this.endTurnSave(playAreas, hand, deck, this.state.areaChangedIndexes);
-    this.setState({ deck: deck, hand: hand, playPhase: true, gameOver: gameOver, playAreas: playAreas })
+    this.setState({ deck: deck, hand: hand, playPhase: true, isPlayersTurn: false, gameOver: gameOver, playAreas: playAreas })
   }
 
   handleCardClick(index){
@@ -141,10 +142,10 @@ class LostCities extends React.Component {
     let playAreas = this.state.playAreas;
     let selectedCard = hand.hand[index];
 
-    for(var i = 0; i < hand.hand.length; i++){
+    for(let i = 0; i < hand.hand.length; i++){
       hand.hand[i].isSelected = false;
     }
-    for(var i = 0; i < playAreas.length; i++){
+    for(let i = 0; i < playAreas.length; i++){
       if(playAreas[i].suit === selectedCard.suit && (playAreas[i].playerId === this.state.player._id || playAreas[i].isDiscard)){
         if(playAreas[i].playedCards === undefined || playAreas[i].playedCards.length === 0 || selectedCard.value >= playAreas[i].playedCards[playAreas[i].playedCards.length - 1].value || playAreas[i].isDiscard)
           playAreas[i].selectOption = true;
@@ -158,14 +159,17 @@ class LostCities extends React.Component {
   }
 
   handlePlayAreaClick(AreaId){
+    if(!this.state.isPlayersTurn)
+      return;
     let hand = this.state.hand;
     let playAreas = this.state.playAreas;
     let playPhase = false;
+    let isPlayersTurn = false;
     let areaChangedIndexes = this.state.areaChangedIndexes;
     areaChangedIndexes.push(AreaId);
     if(this.state.playPhase){
       let selectedCard = hand.hand[this.state.selectedCardIndex];
-      for(var i = 0; i < playAreas.length; i++){
+      for(let i = 0; i < playAreas.length; i++){
         if(playAreas[i]._id === AreaId){
           playAreas[i].playedCards.push(selectedCard);
           playAreas[i].selectOption = false;
@@ -176,10 +180,11 @@ class LostCities extends React.Component {
           playAreas[i].selectOption = false;
       }
       hand.hand.splice(this.state.selectedCardIndex, 1);
+      isPlayersTurn = true;
     }
     else{
       let cardToAddToHand = null;
-      for(var i = 0; i < playAreas.length; i++){
+      for(let i = 0; i < playAreas.length; i++){
         if(playAreas[i]._id === AreaId)
           cardToAddToHand = playAreas[i].playedCards.pop();
         playAreas[i].selectOption = false;
@@ -190,7 +195,8 @@ class LostCities extends React.Component {
       this.endTurnSave(playAreas, hand, this.state.deck, areaChangedIndexes);
     }
     let playerScores = this.calculateScores(playAreas, this.state.player);
-    this.setState({ playerScores: playerScores, hand: hand, selectedCardIndex: "", isPlayersTurn: true, playPhase: playPhase, playAreas: playAreas, areaChangedIndexes: areaChangedIndexes });
+    console.log(isPlayersTurn);
+    this.setState({ playerScores: playerScores, hand: hand, selectedCardIndex: "", isPlayersTurn: isPlayersTurn, playPhase: playPhase, playAreas: playAreas, areaChangedIndexes: areaChangedIndexes });
   }
 
   render() {
@@ -243,7 +249,10 @@ class LostCities extends React.Component {
     let style = Object.assign({},
       styles.deck,
       !this.state.playPhase && styles.borderHighlight,
-      this.state.playPhase && styles.normalBorder,
+      this.state.playPhase && styles.normalBorder
+    );
+    let deckDivStyle = Object.assign({},
+      { textAlign: "center" },
       this.state.deck.length === 0 && styles.hidden
     );
     let ScoreStyle = Object.assign({},
@@ -278,8 +287,9 @@ class LostCities extends React.Component {
             <div style={ScoreStyle}>
               Score: {this.state.playerScores[1]}
             </div>
-            <div>
-              <img src={deck} style={style} onClick={this.handleDeckClick} />
+            <div style={deckDivStyle}>
+              <img src={deck} style={style} onClick={this.handleDeckClick} alt="deck" />
+              <div>({this.state.deck.length})</div>
             </div>
             <div style={ScoreStyle}>
               Score: {this.state.playerScores[0]}

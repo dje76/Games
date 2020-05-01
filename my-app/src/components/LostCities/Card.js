@@ -35,6 +35,8 @@ class Card extends React.Component {
       case 5:
         BackgroundStyle = { backgroundImage: `url(${Red})` };
         break;
+      default:
+        break;
     }
     let cardValue = ""
     if(this.props.value === 0 || this.props.value > 10)
