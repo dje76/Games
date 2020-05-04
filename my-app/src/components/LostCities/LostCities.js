@@ -5,7 +5,9 @@ import PlayArea from './PlayArea.js';
 import Hand from './Hand.js';
 import styles from '../../Styles/LostCities.css.js';
 import deck from '../../Images/LostCities/Deck.png';
-import axios from 'axios'
+import axios from 'axios';
+import socketIOClient from "socket.io-client";
+const ENDPOINT = "http://127.0.0.1:3002";
 
 
 class LostCities extends React.Component {
@@ -72,6 +74,25 @@ class LostCities extends React.Component {
     });
   }
 
+  updateGameData(data){
+    let playAreas = this.state.playAreas;
+    for(var i = 0; i < playAreas.length; i++){
+      for(var j = 0; j < data.newPlayAreas.length; j++){
+        if(playAreas[i]._id === data.newPlayAreas[j]._id)
+          playAreas[i] = data.newPlayAreas[j];
+      }
+    }
+    let newGame = data.newGame == undefined ? this.state.game : data.newGame;
+    let playerScores = this.calculateScores(playAreas, this.state.player);
+    this.setState({
+      deck: data.newLostCities_Game.deck,
+      game: newGame,
+      playAreas: playAreas,
+      playerScores: playerScores,
+      isPlayersTurn: data.newLostCities_Game.playerTurn === this.state.player._id
+    });
+  }
+
   getNewGameData(requestData){
     console.log(requestData.data);
     let playerScores = this.calculateScores(requestData.data.currentLostCities_playAreas, requestData.data.currentPlayer);
@@ -84,6 +105,10 @@ class LostCities extends React.Component {
       playAreas: requestData.data.currentLostCities_playAreas,
       playerScores: playerScores,
       isPlayersTurn: requestData.data.currentLostCities_Game.playerTurn === requestData.data.currentPlayer._id
+    });
+    const socket = socketIOClient(ENDPOINT + "?playerId=" + requestData.data.currentPlayer._id);
+    socket.on("UpdateGameData", data => {
+      this.updateGameData(data);
     });
   }
 
@@ -195,7 +220,6 @@ class LostCities extends React.Component {
       this.endTurnSave(playAreas, hand, this.state.deck, areaChangedIndexes);
     }
     let playerScores = this.calculateScores(playAreas, this.state.player);
-    console.log(isPlayersTurn);
     this.setState({ playerScores: playerScores, hand: hand, selectedCardIndex: "", isPlayersTurn: isPlayersTurn, playPhase: playPhase, playAreas: playAreas, areaChangedIndexes: areaChangedIndexes });
   }
 

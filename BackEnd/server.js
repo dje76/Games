@@ -4,30 +4,29 @@ const lostCities = require('./LostCities.js');
 const lostCitiesHandler = new lostCities();
 const cors = require('cors');
 const app = express();
-const socket = express();
-const server = require('http').createServer(socket);
+const socketApp = express();
+const server = require('http').createServer(socketApp);
 const io = require('socket.io')(server);
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json());
+let socketList = [];
 
 io.on("connection", (socket) => {
   console.log("New client connected");
-  if (interval) {
-    clearInterval(interval);
-  }
-  interval = setInterval(() => getApiAndEmit(socket), 1000);
+  socketList.push(socket);
   socket.on("disconnect", () => {
+    let socketToRemoveIndex = -1;
+    for(let i = 0; i < socketList.length; i++){
+      if(socketList[i].id === socket.id){
+        socketToRemoveIndex = i;
+        break;
+      }
+    }
+    socketList.splice(socketToRemoveIndex, 1);
     console.log("Client disconnected");
-    clearInterval(interval);
   });
 });
-
-const getApiAndEmit = socket => {
-  const response = new Date();
-  // Emitting a new message. Will be consumed by the client
-  socket.emit("FromAPI", response);
-};
 
 server.listen(3002, () => console.log('socket listening on port 3002'));
 app.listen(3001, () => console.log('listening on 3001'));
@@ -53,5 +52,12 @@ app.post('/playerLogin', async (req, res) =>{
 });
 
 app.post('/endTurnSave', async (req, res) =>{
-  lostCitiesHandler.endTurnSave(req, res);
+  let newGameData = await lostCitiesHandler.endTurnSave(req, res);
+
+  for(let i = 0 ; i < socketList.length; i++){
+    for(let j = 0 ; j < newGameData.playerToUpdate.length; j++){
+      if(socketList[i].handshake.query.playerId.toString() === newGameData.playerToUpdate[j]._id.toString())
+        socketList[i].emit("UpdateGameData", newGameData);
+    }
+  }
 });

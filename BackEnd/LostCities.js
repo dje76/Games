@@ -159,24 +159,29 @@ class LostCities {
       _id: req.body.selectedPlayerId,
       playerPassword: req.body.playerPassword
     });
-    const currentLostCities_Game = await lostCities_Game.findOne({ gameId: req.body.selectedId });
-    const currentLostCities_Hand = await lostCities_Hand.findOne({ playerId: currentplayer._id });
-    const gamePlayAreas = await lostCities_playArea.find({ lostCities_GameId: currentLostCities_Game._id });
+    if(currentplayer !== undefined && currentplayer !== null){
+      const currentLostCities_Game = await lostCities_Game.findOne({ gameId: req.body.selectedId });
+      const currentLostCities_Hand = await lostCities_Hand.findOne({ playerId: currentplayer._id });
+      const gamePlayAreas = await lostCities_playArea.find({ lostCities_GameId: currentLostCities_Game._id });
 
-    res.send({
-      currentPlayer: currentplayer,
-      currentLostCities_Game: currentLostCities_Game,
-      currentLostCities_Hand: currentLostCities_Hand,
-      currentLostCities_playAreas: gamePlayAreas
-    });
+      res.send({
+        currentPlayer: currentplayer,
+        currentLostCities_Game: currentLostCities_Game,
+        currentLostCities_Hand: currentLostCities_Hand,
+        currentLostCities_playAreas: gamePlayAreas
+      });
+    }
+    else
+      res.send({ error: "Could not find user"});
   }
 
 
   async endTurnSave(req, res){
+    let newGame = null;
     if(req.body.deck.length === 0){
       const currentGame = await game.findOne ({ _id: req.body.game._id });
       currentGame.gameComplete = true;
-      await currentGame.save();
+      let newGame = await currentGame.save();
     }
 
     const currentPlayers = await player.find({ gameId: req.body.game._id });
@@ -188,19 +193,22 @@ class LostCities {
     const currentLostCities_Game = await lostCities_Game.findOne({ gameId: req.body.game._id });
     currentLostCities_Game.deck = req.body.deck;
     currentLostCities_Game.playerTurn = changePlayerId;
-    await currentLostCities_Game.save();
+    let newLostCities_Game = await currentLostCities_Game.save();
 
     const currentLostCities_Hand = await lostCities_Hand.findOne({ _id: req.body.hand._id });
     currentLostCities_Hand.hand = req.body.hand.hand;
     await currentLostCities_Hand.save();
 
+    let newPlayAreas = [];
     for(let i = 0; i < req.body.playAreas.length; i++){
       const playArea = await lostCities_playArea.findOne({ _id: req.body.playAreas[i]._id });
       playArea.playedCards = req.body.playAreas[i].playedCards;
       const newPlayArea = await playArea.save();
+      newPlayAreas.push(newPlayArea);
     }
 
     res.send({ complete: true });
+    return { newPlayAreas: newPlayAreas, newLostCities_Game: newLostCities_Game, newGame: newGame, playerToUpdate: currentPlayers };
   }
 
   buildDeck(){

@@ -94,8 +94,13 @@ class StartGameModal extends React.Component {
     };
     axios.post('http://localhost:3001/playerLogin', postData)
     .then(function (response) {
-      response.data.currentGame = { gameName: that.state.gameName, _id: that.state.selectedId };
-      that.props.getNewGameData(response);
+      if(response.data.error !== undefined)
+        that.setState({ loginFailed: true });
+      else{
+        response.data.currentGame = { gameName: that.state.gameName, _id: that.state.selectedId };
+        that.props.getNewGameData(response);
+        that.setState({ loginFailed: false });
+      }
     })
     .catch(function (error) {
       console.log(error);
@@ -170,6 +175,9 @@ class StartGameModal extends React.Component {
         </>;
       }
       else{
+        let loginFailed = null;
+        if(this.state.loginFailed)
+          loginFailed = "Login Failed";
         modalContent = <>
           <input type="radio" name="player" onChange={this.handlePlayerCheckChange} value={this.state.gamePlayers[0]._id} />
           <label style={{marginRight: "15px"}}>{this.state.gamePlayers[0].playerName}</label>
@@ -186,6 +194,7 @@ class StartGameModal extends React.Component {
               onChange={this.playerPasswordChange}
             />
           </InputGroup>
+          {loginFailed}
         </>;
       }
     }
@@ -275,6 +284,9 @@ class StartGameModal extends React.Component {
     if(this.state.createGameOpen)
       createGameButtonText = "Join Existing";
 
+    let canClickJoinButton = true;
+    if(this.state.createGameOpen || this.state.loggedIntoGame)
+      canClickJoinButton = false;
     return (
         <Modal show={this.props.showCreateGameModal} onHide={this.props.closeCreateGameModal}>
           <Modal.Header closeButton>
@@ -291,7 +303,7 @@ class StartGameModal extends React.Component {
             <Button variant="secondary" onClick={this.props.closeCreateGameModal}>
               Close
             </Button>
-            <Button variant="primary" onClick={this.createNewGame}>
+            <Button variant="primary" onClick={this.createNewGame} disabled={canClickJoinButton}>
               Join/Create
             </Button>
           </Modal.Footer>
