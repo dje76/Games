@@ -8,6 +8,7 @@ import Onitama from './components/Onitama/Onitama.js';
 import Othello from './components/Othello/Othello.js';
 import HeyThatsMyFish from './components/HeyThatsMyFish/HeyThatsMyFish.js';
 import LostCities from './components/LostCities/LostCities.js';
+import RollingVillage from './components/RollingVillage/RollingVillage.js';
 
 import {
   Switch,
@@ -28,6 +29,7 @@ function App() {
           <Nav.Link as={Link} to="/Othello">Othello</Nav.Link>
           <Nav.Link as={Link} to="/HeyThatsMyFish">Hey That's My Fish!</Nav.Link>
           <Nav.Link as={Link} to="/LostCities">Lost Cities</Nav.Link>
+          <Nav.Link as={Link} to="/RollingVillage">Rolling Village</Nav.Link>
         </Nav>
       </Navbar>
       <Switch>
@@ -51,6 +53,9 @@ function App() {
         </Route>
         <Route path="/LostCities">
           <LostCities />
+        </Route>
+        <Route path="/RollingVillage">
+          <RollingVillage />
         </Route>
         <Route path="/">
           <Home />

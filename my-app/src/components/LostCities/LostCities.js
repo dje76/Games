@@ -82,7 +82,7 @@ class LostCities extends React.Component {
           playAreas[i] = data.newPlayAreas[j];
       }
     }
-    let newGame = data.newGame == undefined ? this.state.game : data.newGame;
+    let newGame = data.newGame === undefined ? this.state.game : data.newGame;
     let playerScores = this.calculateScores(playAreas, this.state.player);
     this.setState({
       deck: data.newLostCities_Game.deck,

@@ -13,12 +13,6 @@ export default {
   turnArrow: {
     marginTop: "75px"
   },
-  selected: {
-    backgroundColor: "yellow"
-  },
-  notSelected:{
-    backgroundColor: "White"
-  },
   moveOption: {
     backgroundColor: "#e2e2e2"
   },
