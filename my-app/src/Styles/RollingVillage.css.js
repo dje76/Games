@@ -47,7 +47,7 @@ export default {
     backgroundRepeat: "no-repeat"
   },
   finalScore:{
-    width: "516px",
+    width: "246px",
     padding: "10px 70px 30px 100px",
     height: "90px",
     backgroundSize: "contain",
@@ -59,6 +59,13 @@ export default {
     height: "100%",
     verticalAlign: "top",
     padding: "17px"
+  },
+  turnPointsDiv:{
+    width: "80%",
+    height: "120px",
+    padding: "38px 11px 29px 19px",
+    backgroundSize: "contain",
+    backgroundRepeat: "no-repeat"
   },
   actionDivs:{
     marginBottom: "42px",

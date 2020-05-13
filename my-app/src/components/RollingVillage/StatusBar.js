@@ -11,7 +11,7 @@ class StatusBar extends React.Component {
   render() {
     let gameOver = null;
     if(this.props.gameOver)
-      gameOver = <div>Total Points: {this.props.totalPoints} </div>;
+      gameOver = <>{this.props.totalPoints}</>;
 
     let actionStyle = Object.assign({},
       styles.actionBar,
@@ -24,7 +24,12 @@ class StatusBar extends React.Component {
 
     const actionDivs = this.props.actionDivs.map((x, index) => {
       return (
-        <ActionOption handleActionOptionClick={this.props.handleActionOptionClick} value={x} key={index} identifier={index} />
+        <ActionOption
+          handleActionOptionClick={this.props.handleActionOptionClick}
+          value={x}
+          key={index} 
+          identifier={index}
+        />
       );
     });
 
@@ -35,8 +40,7 @@ class StatusBar extends React.Component {
         <div>Seconds: {this.props.secondsInGame}</div>
         <div><Button variant="primary" onClick={this.props.startOver}>Re-Start</Button></div>
         <div><a href={rules} target="_blank" rel="noopener noreferrer">Rules</a></div>
-        <div style={finalScoreStyle}></div>
-        {gameOver}
+        <div style={finalScoreStyle}>{gameOver}</div>
       </div>
     );
   }

@@ -18,6 +18,7 @@ class RollingVillage extends React.Component {
       intervalId: 0,
       gameOver: false,
       cantRollDice: false,
+      actionSelectNeededToScore: false,
       turnPoints: [null, null, null, null, null, null, null, null, null],
       turnIndex: 0,
       projects: [null, null, null, null],
@@ -47,7 +48,8 @@ class RollingVillage extends React.Component {
     this.startOver = this.startOver.bind(this);
     this.clearMoveOptions = this.clearMoveOptions.bind(this);
 
-    let grid = Array(this.state.dimensions[1]).fill().map(() => Array(this.state.dimensions[0]).fill().map(() => { return { projectType: 0, isOption: false, value: 0 }; }));
+    let grid = Array(this.state.dimensions[1]).fill().map(() =>
+      Array(this.state.dimensions[0]).fill().map(() => { return { projectType: 0, isOption: false, value: 0 }; }));
     this.state.grid = this.setGridValues(grid);
     this.state.boardDimensions = [(this.state.dimensions[0] * this.state.cellSize) + 4, (this.state.dimensions[1] * this.state.cellSize) + 4];
 
@@ -68,17 +70,50 @@ class RollingVillage extends React.Component {
   }
 
   startOver(){
-    let grid = Array(this.state.dimensions[1]).fill().map(() => Array(this.state.dimensions[0]).fill().map(() => { return { projectType: 0, isOption: false, value: 0 }; }));
+    let grid = Array(this.state.dimensions[1]).fill().map(() =>
+      Array(this.state.dimensions[0]).fill().map(() => { return { projectType: 0, isOption: false, value: 0 }; }));
     grid = this.setGridValues(grid)
     clearInterval(this.state.intervalId);
-    this.setState({ grid: grid, actionDivs: [0,0,0,0,0], projects: [null, null, null, null], turnPoints: [null, null, null, null, null, null, null, null, null], diceValues: [null, null], gameOver: false, secondsInGame: 0, timerStarted: false, cantRollDice: false });
+    this.setState({ grid: grid, actionDivs: [0,0,0,0,0], projects: [null, null, null, null],
+      turnPoints: [null, null, null, null, null, null, null, null, null], diceValues: [null, null],
+      gameOver: false, secondsInGame: 0, timerStarted: false, cantRollDice: false });
   }
 
   handleActionOptionClick(index){
     let actionDivs = [0,0,0,0,0];
     actionDivs[index] = 1;
-    if(this.state.diceValues[0] + this.state.diceValues[1] === 2 || this.state.diceValues[0] + this.state.diceValues[1] === 12)
-    this.setState({ actionDivs: actionDivs });
+    if(this.state.diceValues[0] + this.state.diceValues[1] === 2 || this.state.diceValues[0] + this.state.diceValues[1] === 12){
+      if(this.state.actionSelectNeededToScore){
+        let grid = this.state.grid;
+        let turnIndex = this.state.turnIndex;
+        let turnPoints = this.state.turnPoints;
+        let gameOver = false;
+        let totalPoints = 0;
+        let actionMessage = "";
+        if(this.state.bonusMode){
+          turnPoints[turnIndex] = this.scoreRow(grid, actionDivs);
+          if(turnIndex === 8){
+            actionMessage = "Game Over!";
+            gameOver = true;
+            clearInterval(this.state.intervalId);
+            totalPoints = this.getTotalPoints(grid, turnPoints);
+          }
+          else
+            actionMessage = "Roll the dice!";
+          turnIndex++;
+        }
+        else{
+          turnPoints[turnIndex] = this.scoreRow(grid, actionDivs);
+          actionMessage = "Roll the dice!";
+          turnIndex++;
+        }
+        this.setState({ bonusMode: false, turnIndex: turnIndex, turnPoints: turnPoints, cantRollDice: false,
+          gameOver: gameOver, totalPoints: totalPoints, actionMessage: actionMessage
+        });
+      }
+      else
+        this.setState({ actionDivs: actionDivs });
+    }
   }
 
   handleSquareClick(key){
@@ -109,22 +144,38 @@ class RollingVillage extends React.Component {
     let cantRollDice = true;
     let gameOver = false;
     let bonusMode = false;
+    let actionSelectNeededToScore = false;
     let totalPoints = 0;
     let actionMessage = "Select a spot to build!";
+    let bonusProjects = this.state.bonusProjects;
     if(this.state.bonusMode){
+      bonusProjects.push(this.state.selectedProject + 1);
       grid = this.clearMoveOptions(grid);
-      projects[0] = 0;
-      projects[1] = 0;
-      projects[2] = 0;
-      cantRollDice = false;
-      turnPoints[turnIndex] = this.scoreRow(grid);
-      actionMessage = "Roll the dice!";
-      turnIndex++;
+      projects[0] = null;
+      projects[1] = null;
+      projects[2] = null;
+      if(this.state.actionDivs.includes(1)){
+        cantRollDice = false;
+        turnPoints[turnIndex] = this.scoreRow(grid, this.state.actionDivs);
+        if(turnIndex === 8){
+          actionMessage = "Game Over!";
+          gameOver = true;
+          clearInterval(this.state.intervalId);
+          cantRollDice = true;
+          totalPoints = this.getTotalPoints(grid, turnPoints);
+        }
+        else
+          actionMessage = "Roll the dice!";
+        turnIndex++;
+      }
+      else{
+        actionMessage = "Select an action row!";
+        actionSelectNeededToScore = true;
+      }
     }
     else if(!this.hasProjectOption(projects)){
       if (turnIndex === 2 || turnIndex === 5 || turnIndex === 8){
         actionMessage = "Select a bonus project to build!";
-        let bonusProjects = this.state.bonusProjects;
         projects[0] = 1;
         projects[1] = 1;
         projects[2] = 1;
@@ -139,14 +190,23 @@ class RollingVillage extends React.Component {
         bonusMode = true;
       }
       else{
-        cantRollDice = false;
-        turnPoints[turnIndex] = this.scoreRow(grid);
-        actionMessage = "Roll the dice!";
-        turnIndex++;
+        if(this.state.actionDivs.includes(1)){
+          cantRollDice = false;
+          turnPoints[turnIndex] = this.scoreRow(grid, this.state.actionDivs);
+          actionMessage = "Roll the dice!";
+          turnIndex++;
+        }
+        else{
+          actionMessage = "Select an action row!";
+          actionSelectNeededToScore = true;
+        }
       }
     }
 
-    this.setState({ grid: grid, bonusMode: bonusMode, selectedProject: selectedProject, projects: projects, turnIndex: turnIndex, turnPoints: turnPoints, cantRollDice: cantRollDice, gameOver: gameOver, totalPoints: totalPoints, actionMessage: actionMessage });
+    this.setState({ grid: grid, bonusProjects: bonusProjects,bonusMode: bonusMode, selectedProject: selectedProject,
+      projects: projects, turnIndex: turnIndex, turnPoints: turnPoints, cantRollDice: cantRollDice,
+      gameOver: gameOver, totalPoints: totalPoints, actionMessage: actionMessage, actionSelectNeededToScore: actionSelectNeededToScore
+    });
   }
 
   rollDice(){
@@ -155,19 +215,19 @@ class RollingVillage extends React.Component {
     if(diceValues[0] === 1 || diceValues[0] === 4 || diceValues[1] === 1 || diceValues[1] === 4)
       projects[0] = 1;
     else
-      projects[0] = 0;
+      projects[0] = null;
     if(diceValues[0] === 2 || diceValues[0] === 5 || diceValues[1] === 2 || diceValues[1] === 5)
       projects[1] = 1;
     else
-      projects[1] = 0;
+      projects[1] = null;
     if(diceValues[0] === 3 || diceValues[0] === 6 || diceValues[1] === 3 || diceValues[1] === 6)
       projects[2] = 1;
     else
-      projects[2] = 0;
+      projects[2] = null;
     if(diceValues[0] === diceValues[1])
       projects[3] = 1;
     else
-      projects[3] = 0;
+      projects[3] = null;
 
     let actionDivs = [0,0,0,0,0];
     let actionMessage = "Select a project to build!";
@@ -254,7 +314,8 @@ class RollingVillage extends React.Component {
     if(this.hasMoveOptionColumn(grid, this.state.diceValues[diceValueIndex] - 1) !== 0)
       grid = this.setColumnMoveOptions(grid, this.state.diceValues[diceValueIndex] - 1);
     else{
-      if(this.hasMoveOptionColumn(grid, this.state.diceValues[diceValueIndex] - 2) > this.hasMoveOptionColumn(grid, this.state.diceValues[diceValueIndex]))
+      if(this.hasMoveOptionColumn(grid, this.state.diceValues[diceValueIndex] - 2) >
+        this.hasMoveOptionColumn(grid, this.state.diceValues[diceValueIndex]))
         grid = this.setColumnMoveOptions(grid, this.state.diceValues[diceValueIndex] - 2);
       else
         grid = this.setColumnMoveOptions(grid, this.state.diceValues[diceValueIndex]);
@@ -310,12 +371,12 @@ class RollingVillage extends React.Component {
     return false;
   }
 
-  scoreRow(grid){
+  scoreRow(grid, actionDivs){
     let totalPoints = 0;
 
     let baseRowIndex = -1;
-    for(let i = 0; i < this.state.actionDivs.length; i++){
-      if(this.state.actionDivs[i] === 1){
+    for(let i = 0; i < actionDivs.length; i++){
+      if(actionDivs[i] === 1){
         baseRowIndex = i;
         break;
       }
@@ -334,12 +395,14 @@ class RollingVillage extends React.Component {
         if(inPreviousArea)
           break;
       }
-      if(!inPreviousArea && grid[baseRowIndex][i].projectType > 0 && grid[baseRowIndex][i].projectType < 4 && grid[baseRowIndex][i].value !== 0){
+      if(!inPreviousArea && grid[baseRowIndex][i].projectType > 0 &&
+          grid[baseRowIndex][i].projectType < 4 && grid[baseRowIndex][i].value !== 0){
         let listOfLocationsInArea = this.getTotalPointsOfArea(grid, [baseRowIndex, i], [[baseRowIndex, i]], grid[baseRowIndex][i].projectType);
         for(let j = 0; j < listOfLocationsInArea.length; j++){
           totalPoints += grid[listOfLocationsInArea[j][0]][listOfLocationsInArea[j][1]].value;
         }
         previousAreas.push(listOfLocationsInArea);
+        console.log(listOfLocationsInArea);
       }
     }
     return totalPoints;
@@ -354,7 +417,8 @@ class RollingVillage extends React.Component {
     return listOfLocationsInArea;
   }
   getTotalPointsOfAreaAtLocation(grid, location, listOfLocationsInArea, projectType){
-    if(location[0] < 5 && location[0] > -1 && location[1] < 5 && location[1] < -1 && grid[location[0]][location[1]].projectType === projectType){
+    if(location[0] < 5 && location[0] > -1 && location[1] < 6 &&
+        location[1] > -1 && grid[location[0]][location[1]].projectType === projectType){
       let inList = false;
       for(let i = 0; i < listOfLocationsInArea.length; i++){
         if(listOfLocationsInArea[i][0] === location[0] && listOfLocationsInArea[i][1] === location[1]){
@@ -427,6 +491,10 @@ class RollingVillage extends React.Component {
       styles.board,
       { backgroundImage: `url(${board})`, backgroundSize: "contain", backgroundRepeat: "no-repeat"}
     );
+    let turnPointsDivStyle = Object.assign({},
+      styles.turnPointsDiv,
+      {backgroundImage: `url(${scoreBar})`}
+    );
     const cells = this.state.grid.map((x, index) => {
       return x.map((y, index2) => {
         return (
@@ -463,7 +531,7 @@ class RollingVillage extends React.Component {
             />
           </div>
           <div className="col-6">
-            <div style={{ marginTop: "10px", width: "540px" }} >
+            <div style={{ marginTop: "10px", width: "547px" }} >
               <Project handleProjectClick={this.handleProjectClick} value={this.state.projects[0]} index={0} />
               <Project handleProjectClick={this.handleProjectClick} value={this.state.projects[1]} index={1} />
               <Project handleProjectClick={this.handleProjectClick} value={this.state.projects[2]} index={2} />
@@ -472,12 +540,14 @@ class RollingVillage extends React.Component {
             <div className="board" style={style}>
               <div style= {{ width: "100%", height: "100%" }}>{cells}</div>
             </div>
-            <div style={{ width: "80%", height: "120px", padding: "38px 11px 29px 19px", backgroundImage: `url(${scoreBar})`, backgroundSize: "contain", backgroundRepeat: "no-repeat"}}>
+            <div style={turnPointsDivStyle}>
               {turnPoints}
             </div>
           </div>
           <div className="col-3">
-            <div style={{ marginTop: "50px" }}><Button variant="primary" onClick={this.rollDice} disabled={this.state.cantRollDice}>Roll Dice</Button></div>
+            <div style={{ marginTop: "50px" }}>
+              <Button variant="primary" onClick={this.rollDice} disabled={this.state.cantRollDice}>Roll Dice</Button>
+            </div>
             <Die dieValue={this.state.diceValues[0]} />
             <Die dieValue={this.state.diceValues[1]} />
             <div>{this.state.actionMessage}</div>
